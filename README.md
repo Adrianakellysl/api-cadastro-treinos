@@ -6,7 +6,6 @@ Um diferencial deste desafio foi o uso estratégico de Inteligência Artificial 
 
 ---
 
-...
 ## Documentação (Swagger)
 
 <p align="center">
@@ -109,6 +108,7 @@ npm test
 <p align="center">
   <img src="./images/sucesso-postman.png" width="800" alt="Teste no Postman - sucesso">
 </p>
+
 ---
 
 ## Relatórios com Mochawesome
@@ -116,7 +116,6 @@ npm test
 <p align="center">
   <img src="./images/relatorios-html.png" width="800" alt="Relatório Mochawesome">
 </p>
-...
 
 ---
 
