@@ -28,7 +28,7 @@ describe('API de Treinos (Gym Workouts)', () => {
       expect(res.body.nomeTreino).to.equal("Treino de Peito");
     });
 
-    it('8. Deve remover espaços em branco desnecessários no nome do treino', async () => {
+    it('2. Deve remover espaços em branco desnecessários no nome do treino', async () => {
       const res = await request(app).post('/treinos').send({
         nomeTreino: "   Yoga Relax   ",
         tipoTreino: "funcional",
@@ -47,7 +47,7 @@ describe('API de Treinos (Gym Workouts)', () => {
   // ================================
   describe('Validações de Campos', () => {
 
-    it('2. Não deve aceitar campos extras na requisição', async () => {
+    it('3. Não deve aceitar campos extras na requisição', async () => {
       const res = await request(app).post('/treinos').send({
         nomeTreino: "Costas",
         tipoTreino: "musculacao",
@@ -60,7 +60,7 @@ describe('API de Treinos (Gym Workouts)', () => {
       expect(res.body.error).to.include('Campos não permitidos');
     });
 
-    it('9. Deve rejeitar se a duração for enviada como texto (string)', async () => {
+    it('4. Deve rejeitar se a duração for enviada como texto (string)', async () => {
       const res = await request(app).post('/treinos').send({
         nomeTreino: "Treino de Teste",
         tipoTreino: "musculacao",
@@ -72,7 +72,7 @@ describe('API de Treinos (Gym Workouts)', () => {
       expect(res.body.error).to.include('número inteiro');
     });
 
-    it('10. Deve rejeitar caso um campo obrigatório não seja informado', async () => {
+    it('5. Deve rejeitar caso um campo obrigatório não seja informado', async () => {
       const res = await request(app).post('/treinos').send({
         nomeTreino: "Treino de força",
         duracaoMinutos: 100,
@@ -84,7 +84,7 @@ describe('API de Treinos (Gym Workouts)', () => {
       expect(res.body.error).to.include('tipoTreino');
     });
 
-    it('11. Deve rejeitar se um campo obrigatório estiver vazio', async () => {
+    it('6. Deve rejeitar se um campo obrigatório estiver vazio', async () => {
       const res = await request(app).post('/treinos').send({
         nomeTreino: "Treino de cardio",
         tipoTreino: "cardio",
@@ -104,7 +104,7 @@ describe('API de Treinos (Gym Workouts)', () => {
   // ================================
   describe('Regras de Negócio', () => {
 
-    it('3. Deve rejeitar durações fora das limitações (<1 ou >300)', async () => {
+    it('7. Deve rejeitar durações fora das limitações (<1 ou >300)', async () => {
       const res1 = await request(app).post('/treinos').send({
         nomeTreino: "Esteira",
         tipoTreino: "cardio",
@@ -124,7 +124,7 @@ describe('API de Treinos (Gym Workouts)', () => {
       expect(res2.status).to.equal(400);
     });
 
-    it('4. Deve validar dados tipificados inválidos', async () => {
+    it('8. Deve validar dados tipificados inválidos', async () => {
       const res = await request(app).post('/treinos').send({
         nomeTreino: "Abdomen",
         tipoTreino: "funcional",
@@ -135,7 +135,7 @@ describe('API de Treinos (Gym Workouts)', () => {
       expect(res.status).to.equal(400);
     });
 
-    it('5. Não deve aceitar cadastro duplicado (nome + data)', async () => {
+    it('9. Não deve aceitar cadastro duplicado (nome + data)', async () => {
       await request(app).post('/treinos').send({
         nomeTreino: "Biceps",
         tipoTreino: "musculacao",
@@ -156,7 +156,7 @@ describe('API de Treinos (Gym Workouts)', () => {
       expect(res.body.error).to.include('cadastro duplicado');
     });
 
-    it('6. Não deve permitir datas no passado', async () => {
+    it('10. Não deve permitir datas no passado', async () => {
       const res = await request(app).post('/treinos').send({
         nomeTreino: "Reliquia Cardio",
         tipoTreino: "cardio",
@@ -169,7 +169,7 @@ describe('API de Treinos (Gym Workouts)', () => {
       expect(res.body.error).to.include('passado');
     });
 
-    it('7. Deve aceitar 300 e rejeitar 301 minutos', async () => {
+    it('11. Deve aceitar 300 e rejeitar 301 minutos', async () => {
       const resSucesso = await request(app).post('/treinos').send({
         nomeTreino: "Maratona de Cardio",
         tipoTreino: "cardio",
