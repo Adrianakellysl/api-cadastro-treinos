@@ -99,6 +99,9 @@ POST /treinos
 ```
 npm test
 ```
+<p align="center">
+  <img src="./images/testes.png" width="800" alt="Testes Automatizados">
+</p>
 
 ---
 ### Testes no Postman
