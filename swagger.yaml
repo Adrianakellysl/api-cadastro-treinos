@@ -1,0 +1,133 @@
+openapi: 3.0.0
+info:
+  title: Gym Workouts API
+  description: >-
+    Esta é uma API de Gestão de Atividades Físicas desenvolvida para automatizar o cadastro de treinos de forma inteligente. 
+    Ela é responsável por processar novas entradas garantindo que os dados sigam padrões rigorosos de qualidade, 
+    como a validação de limites de tempo, o bloqueio de datas retroativas e a prevenção de registros duplicados.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor de Desenvolvimento Local
+
+paths:
+  /treinos:
+    post:
+      summary: Cria um novo cadastro de treino
+      description: |
+        Armazena em memória um novo treino, validando as regras de formato de datas,
+        limites matemáticos, ausência de campos intrusos e prevenção total de duplicidades.
+      operationId: createWorkout
+      requestBody:
+        description: Payload JSON para inserir um novo treino no sistema.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TreinoInput'
+      responses:
+        '201':
+          description: Treino criado com sucesso. Retorna o objeto incluindo o ID gerado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreinoOutput'
+        '400':
+          description: |
+            Falha nas Validações (Bad Request).
+            Possíveis violações:
+            * Nome com menos de 3 caracteres.
+            * Envio de campos extras não permitidos (Lixo JSON).
+            * Duração fora do limite (1-300 minutos).
+            * dataTreino no formato inválido ou no passado.
+            * Cadastro duplicado (mesmo nome e data).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Erro interno inesperado no servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    TreinoInput:
+      type: object
+      additionalProperties: false # Impede campos extras
+      required:
+        - nomeTreino
+        - tipoTreino
+        - duracaoMinutos
+        - nivel
+      properties:
+        nomeTreino:
+          type: string
+          minLength: 3
+          description: Nome descritivo da carga de treino.
+          example: 'Maratona de Cardio'
+        tipoTreino:
+          type: string
+          enum: [musculacao, cardio, funcional]
+          description: Modalidade da atividade.
+          example: 'cardio'
+        duracaoMinutos:
+          type: integer
+          minimum: 1
+          maximum: 300
+          description: Duração da atividade em minutos.
+          example: 60
+        nivel:
+          type: string
+          enum: [iniciante, intermediario, avancado]
+          description: Nível de dificuldade atribuído.
+          example: 'intermediario'
+        dataTreino:
+          type: string
+          format: date
+          description: Data do treino (YYYY-MM-DD). Não pode ser no passado.
+          example: '2026-05-15'
+        caloriasEstimadas:
+          type: integer
+          minimum: 1
+          description: Estimativa de queima calórica.
+          example: 400
+
+    TreinoOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador único gerado pelo sistema.
+          example: 'eb4a40ed-c47d-45db-b9d9-bb5eb4ab8521'
+        nomeTreino:
+          type: string
+          example: 'Maratona de Cardio'
+        tipoTreino:
+          type: string
+          example: 'cardio'
+        duracaoMinutos:
+          type: integer
+          example: 60
+        nivel:
+          type: string
+          example: 'intermediario'
+        dataTreino:
+          type: string
+          format: date
+          example: '2026-05-15'
+        caloriasEstimadas:
+          type: integer
+          example: 400
+          
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensagem detalhada sobre a violação da regra de negócio.
+          example: 'A "dataTreino" não pode ser no passado.'
