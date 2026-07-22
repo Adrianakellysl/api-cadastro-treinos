@@ -1,133 +1,195 @@
 # Gym Workouts API
 
-## Objetivo
-Esta API REST foi desenvolvida em Node.js e Express como parte do meu aprimoramento na Mentoria de QA do Julio de Lima. O objetivo é o cadastro de treinos com foco em validações de regras de negócio e testes de QA.
-Um diferencial deste desafio foi o uso estratégico de Inteligência Artificial (IA) para acelerar o ciclo de vida do desenvolvimento do software, neste caso o Antigravity.
+API REST em Node.js e Express para uma plataforma de treinos de academia e treinos em casa.
 
----
+## Funcionalidades
 
-## Documentação (Swagger)
+- Cadastro e login de usuarios com JWT.
+- CRUD de exercicios com video, imagem, instrucoes e erros comuns.
+- CRUD de instrutores.
+- CRUD de treinos associados ao usuario autenticado.
+- Cadastro de exercicios vinculados diretamente a um treino.
+- Filtros por nome, tipo, nivel e intervalo de duracao.
+- Paginacao na listagem de treinos.
+- CRUD de fichas de treino, como Ficha ABC.
+- Registro de historico de treinos realizados.
+- Dashboard com total de treinos realizados, dias consecutivos, calorias, horas treinadas e evolucao mensal.
+- Estatisticas de treinos com quantidade, tempo total e calorias estimadas.
+- Swagger em `/api-docs`.
+- MongoDB com Mongoose.
+- Testes automatizados com Mocha, Chai, Supertest e MongoDB em memoria.
+- Cobertura minima de 80% com nyc.
+- Pipeline GitHub Actions.
 
-<p align="center">
-  <img src="./images/swagger.png" width="800" alt="Documentação Swagger">
-</p>
+## Arquitetura
 
-## Swagger
-
-Arquivo:
+```txt
+src/
+  config/
+  controllers/
+  middlewares/
+  models/
+  repositories/
+  routes/
+  services/
+  utils/
+  validators/
 ```
-swagger.yaml
+
+Fluxo principal:
+
+```txt
+routes -> validators -> controllers -> services -> repositories -> models
 ```
 
-Visualizar em:
-https://editor.swagger.io/
+## Variaveis de ambiente
 
----
+Crie um arquivo `.env` baseado em `.env.example`:
 
-## Regras de Negócio
-
-- Sem campos extras (erro 400)
-- Campos obrigatórios:
-  - nomeTreino
-  - tipoTreino
-  - duracaoMinutos
-  - nivel
-- dataTreino:
-  - Não pode ser passada
-  - Deve ser válida
-- Sem duplicidade (nome + data)
-- duracaoMinutos:
-  - 1 a 300
-- caloriasEstimadas:
-  - Não negativa
-- tipoTreino:
-  - musculacao | funcional | cardio
-
----
-
-## Pré-requisitos
-
-- Node.js
-- npm
-
----
-
-## Execução
-
-### Instalar dependências
+```env
+NODE_ENV=development
+PORT=3000
+MONGODB_URI=mongodb://127.0.0.1:27017/gym-workouts-api
+JWT_SECRET=change-this-secret-in-production
+JWT_EXPIRES_IN=1d
 ```
+
+Para deploy, use uma URI do MongoDB Atlas em `MONGODB_URI` e um valor forte em `JWT_SECRET`.
+
+## Instalar dependencias
+
+```bash
 npm install
 ```
 
-### Rodar servidor
-```
+## Rodar localmente
+
+```bash
 npm run dev
 ```
 
-Servidor:
-```
+API:
+
+```txt
 http://localhost:3000
 ```
 
----
+Swagger:
 
-## Endpoint
-
-```
-POST /treinos
+```txt
+http://localhost:3000/api-docs
 ```
 
----
+Health check:
 
-## Exemplo
-
-```json
-{
-  "nomeTreino": "Treino A",
-  "tipoTreino": "funcional",
-  "duracaoMinutos": 30,
-  "nivel": "iniciante",
-  "dataTreino": "2026-10-10"
-}
+```txt
+GET /health
 ```
-
----
 
 ## Testes
 
-```
+```bash
 npm test
 ```
-<p align="center">
-  <img src="./images/testes.png" width="800" alt="Testes Automatizados">
-</p>
 
----
-### Testes no Postman
+Com cobertura minima:
 
-<p align="center">
-  <img src="./images/sucesso-postman.png" width="800" alt="Teste no Postman - sucesso">
-</p>
+```bash
+npm run coverage
+```
 
----
+## Autenticacao
 
-## Relatórios com Mochawesome
+Rotas protegidas exigem:
 
-<p align="center">
-  <img src="./images/relatorios-html.png" width="800" alt="Relatório Mochawesome">
-</p>
+```txt
+Authorization: Bearer <token>
+```
 
----
+Endpoints publicos:
 
-## Tecnologias Utilizadas
-- Linguagem: JavaScript (Node.js/Express)
-- Testes: Mocha, Chai, Supertest
-- Relatórios: Mochawesome
-- Documentação: Swagger (YAML)
-- Utilitários: UUID para IDs únicos e IA para aceleração de desenvolvimento.
+```txt
+POST /auth/register
+POST /auth/login
+GET  /health
+```
 
-## Observações
+## Endpoints principais
 
-- Armazenamento em memória
-- Apenas POST
-- Foco em QA
+```txt
+POST   /auth/register
+POST   /auth/login
+
+POST   /exercicios
+GET    /exercicios
+GET    /exercicios/:id
+PUT    /exercicios/:id
+DELETE /exercicios/:id
+
+POST   /treinos
+GET    /treinos
+GET    /treinos/:id
+PUT    /treinos/:id
+DELETE /treinos/:id
+POST   /treinos/:id/exercicios
+GET    /treinos/estatisticas
+
+POST   /instrutores
+GET    /instrutores
+GET    /instrutores/:id
+PUT    /instrutores/:id
+DELETE /instrutores/:id
+
+POST   /fichas
+GET    /fichas
+GET    /fichas/:id
+PUT    /fichas/:id
+DELETE /fichas/:id
+
+POST   /historico
+GET    /historico
+GET    /historico/:id
+
+GET    /dashboard/resumo
+GET    /dashboard/evolucao-mensal
+```
+
+Exemplo de filtros e paginacao:
+
+```txt
+GET /treinos?nome=cardio&tipo=cardio&nivel=iniciante&duracaoMin=20&duracaoMax=60&page=1&limit=10
+```
+
+## Regras de negocio
+
+- Todo treino pertence ao usuario autenticado.
+- Usuarios nao podem acessar treinos, exercicios ou historicos de outros usuarios.
+- Treinos nao podem ter exercicios duplicados.
+- Todo exercicio associado a um treino deve existir e pertencer ao usuario autenticado.
+- Todo treino deve ter um instrutor existente.
+- Toda ficha so pode associar treinos existentes.
+- Historico so pode ser registrado para treino existente do usuario autenticado.
+
+## Deploy
+
+O projeto esta preparado para hospedagem em Render, Railway, Fly.io ou outro provedor Node.js.
+
+Configuracoes esperadas:
+
+```txt
+Build command: npm install
+Start command: npm start
+Environment:
+  NODE_ENV=production
+  PORT=<definido pelo provedor>
+  MONGODB_URI=<URI do MongoDB Atlas>
+  JWT_SECRET=<segredo forte>
+  JWT_EXPIRES_IN=1d
+```
+
+Antes do deploy, o CI executa:
+
+```bash
+npm ci
+npm run coverage
+```

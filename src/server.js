@@ -1,6 +1,14 @@
 const app = require('./app');
-const PORT = process.env.PORT || 3000;
+const env = require('./config/env');
+const { connectDatabase } = require('./config/database');
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+connectDatabase()
+  .then(() => {
+    app.listen(env.port, () => {
+      console.log(`Server is running on port ${env.port}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Failed to connect to database', error);
+    process.exit(1);
+  });

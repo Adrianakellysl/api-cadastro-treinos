@@ -1,133 +1,490 @@
 openapi: 3.0.0
 info:
   title: Gym Workouts API
-  description: >-
-    Esta é uma API de Gestão de Atividades Físicas desenvolvida para automatizar o cadastro de treinos de forma inteligente. 
-    Ela é responsável por processar novas entradas garantindo que os dados sigam padrões rigorosos de qualidade, 
-    como a validação de limites de tempo, o bloqueio de datas retroativas e a prevenção de registros duplicados.
-  version: 1.0.0
+  version: 3.0.0
+  description: API REST para usuarios, treinos, exercicios, histórico, dashboard e estatísticas.
 
 servers:
   - url: http://localhost:3000
-    description: Servidor de Desenvolvimento Local
+    description: Desenvolvimento local
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Exercicios
+  - name: Treinos
+  - name: Instrutores
+  - name: Fichas
+  - name: Historico
+  - name: Dashboard
 
 paths:
+  /health:
+    get:
+      security: []
+      summary: Health check
+      responses:
+        "200":
+          description: API online
+
+  /auth/register:
+    post:
+      security: []
+      tags: [Auth]
+      summary: Cadastra usuario
+      requestBody:
+        $ref: "#/components/requestBodies/RegisterBody"
+      responses:
+        "201":
+          description: Usuário criado com sucesso
+        "409":
+          description: E-mail já cadastrado
+
+  /auth/login:
+    post:
+      security: []
+      tags: [Auth]
+      summary: Autentica usuario
+      requestBody:
+        $ref: "#/components/requestBodies/LoginBody"
+      responses:
+        "200":
+          description: Autenticação realizada com sucesso
+        "401":
+          description: Credenciais inválidas
+
   /treinos:
     post:
-      summary: Cria um novo cadastro de treino
-      description: |
-        Armazena em memória um novo treino, validando as regras de formato de datas,
-        limites matemáticos, ausência de campos intrusos e prevenção total de duplicidades.
-      operationId: createWorkout
+      tags: [Treinos]
+      summary: Cria treino do usuario autenticado
       requestBody:
-        description: Payload JSON para inserir um novo treino no sistema.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TreinoInput'
+        $ref: "#/components/requestBodies/TreinoBody"
       responses:
-        '201':
-          description: Treino criado com sucesso. Retorna o objeto incluindo o ID gerado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TreinoOutput'
-        '400':
-          description: |
-            Falha nas Validações (Bad Request).
-            Possíveis violações:
-            * Nome com menos de 3 caracteres.
-            * Envio de campos extras não permitidos (Lixo JSON).
-            * Duração fora do limite (1-300 minutos).
-            * dataTreino no formato inválido ou no passado.
-            * Cadastro duplicado (mesmo nome e data).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Erro interno inesperado no servidor.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+        "201":
+          description: Treino criado com sucesso
+        "400":
+          description: Dados inválidos ou relações inválidas
+        "401":
+          description: Token ausente ou inválido
+    get:
+      tags: [Treinos]
+      summary: Lista treinos do usuario com filtros e paginacao
+      parameters:
+        - in: query
+          name: nome
+          schema:
+            type: string
+        - in: query
+          name: tipo
+          schema:
+            type: string
+            enum: [musculacao, cardio, funcional, mobilidade, casa]
+        - in: query
+          name: nivel
+          schema:
+            type: string
+            enum: [iniciante, intermediario, avancado]
+        - in: query
+          name: duracaoMin
+          schema:
+            type: integer
+        - in: query
+          name: duracaoMax
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Lista paginada de treinos
+
+  /treinos/estatisticas:
+    get:
+      tags: [Treinos]
+      summary: Retorna quantidade de treinos, tempo total e calorias estimadas
+      responses:
+        "200":
+          description: Estatísticas do usuário autenticado
+
+  /treinos/{id}:
+    get:
+      tags: [Treinos]
+      summary: Busca treino por id
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Treino encontrado com sucesso
+        "404":
+          description: Treino não encontrado
+    put:
+      tags: [Treinos]
+      summary: Atualiza treino por id
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        $ref: "#/components/requestBodies/TreinoBody"
+      responses:
+        "200":
+          description: Treino atualizado com sucesso
+    delete:
+      tags: [Treinos]
+      summary: Remove treino por id
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Treino removido com sucesso
+
+  /treinos/{id}/exercicios:
+    post:
+      tags: [Treinos]
+      summary: Cadastra exercicio vinculado a um treino do usuario autenticado
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        $ref: "#/components/requestBodies/ExercicioBody"
+      responses:
+        "201":
+          description: Exercício cadastrado e vinculado ao treino com sucesso
+
+  /exercicios:
+    post:
+      tags: [Exercicios]
+      summary: Cria exercicio do usuario autenticado
+      requestBody:
+        $ref: "#/components/requestBodies/ExercicioBody"
+      responses:
+        "201":
+          description: Exercicio criado
+    get:
+      tags: [Exercicios]
+      summary: Lista exercicios do usuario autenticado
+      responses:
+        "200":
+          description: Lista de exercicios
+
+  /exercicios/{id}:
+    get:
+      tags: [Exercicios]
+      summary: Busca exercicio por id
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Exercicio encontrado
+    put:
+      tags: [Exercicios]
+      summary: Atualiza exercicio por id
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        $ref: "#/components/requestBodies/ExercicioBody"
+      responses:
+        "200":
+          description: Exercicio atualizado
+    delete:
+      tags: [Exercicios]
+      summary: Remove exercicio por id
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Exercicio removido
+
+  /instrutores:
+    post:
+      security: []
+      tags: [Instrutores]
+      summary: Cria instrutor
+      requestBody:
+        $ref: "#/components/requestBodies/InstrutorBody"
+      responses:
+        "201":
+          description: Instrutor criado
+    get:
+      security: []
+      tags: [Instrutores]
+      summary: Lista instrutores
+      responses:
+        "200":
+          description: Lista de instrutores
+
+  /instrutores/{id}:
+    get:
+      security: []
+      tags: [Instrutores]
+      summary: Busca instrutor
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Instrutor encontrado
+    put:
+      security: []
+      tags: [Instrutores]
+      summary: Atualiza instrutor
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        $ref: "#/components/requestBodies/InstrutorBody"
+      responses:
+        "200":
+          description: Instrutor atualizado
+    delete:
+      security: []
+      tags: [Instrutores]
+      summary: Remove instrutor
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Instrutor removido
+
+  /historico:
+    post:
+      tags: [Historico]
+      summary: Registra execucao de treino do usuario
+      requestBody:
+        $ref: "#/components/requestBodies/HistoricoBody"
+      responses:
+        "201":
+          description: Histórico criado com sucesso
+    get:
+      tags: [Historico]
+      summary: Lista historico do usuario
+      responses:
+        "200":
+          description: Lista de históricos
+
+  /historico/{id}:
+    get:
+      tags: [Historico]
+      summary: Busca historico por id
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Histórico encontrado com sucesso
+
+  /dashboard/resumo:
+    get:
+      tags: [Dashboard]
+      summary: Retorna resumo do historico do usuario
+      responses:
+        "200":
+          description: Resumo de evolução do usuário
+
+  /dashboard/evolucao-mensal:
+    get:
+      tags: [Dashboard]
+      summary: Retorna evolucao mensal do usuario
+      responses:
+        "200":
+          description: Evolução mensal do usuário
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+      example: 507f1f77bcf86cd799439011
+
+  requestBodies:
+    RegisterBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RegisterInput"
+    LoginBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/LoginInput"
+    TreinoBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TreinoInput"
+    ExercicioBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ExercicioInput"
+    InstrutorBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/InstrutorInput"
+    HistoricoBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/HistoricoInput"
+
   schemas:
+    RegisterInput:
+      type: object
+      required: [nome, email, senha]
+      properties:
+        nome:
+          type: string
+          example: Adriano Silva
+        email:
+          type: string
+          example: adriano@example.com
+        senha:
+          type: string
+          example: senha123
+
+    LoginInput:
+      type: object
+      required: [email, senha]
+      properties:
+        email:
+          type: string
+          example: adriano@example.com
+        senha:
+          type: string
+          example: senha123
+
     TreinoInput:
       type: object
-      additionalProperties: false # Impede campos extras
       required:
-        - nomeTreino
-        - tipoTreino
-        - duracaoMinutos
-        - nivel
+        [
+          nome,
+          descricao,
+          tipo,
+          nivel,
+          duracaoEstimada,
+          caloriasEstimadas,
+          instrutor,
+        ]
       properties:
-        nomeTreino:
+        nome:
           type: string
-          minLength: 3
-          description: Nome descritivo da carga de treino.
-          example: 'Maratona de Cardio'
-        tipoTreino:
+          example: Treino A
+        descricao:
           type: string
-          enum: [musculacao, cardio, funcional]
-          description: Modalidade da atividade.
-          example: 'cardio'
-        duracaoMinutos:
-          type: integer
-          minimum: 1
-          maximum: 300
-          description: Duração da atividade em minutos.
-          example: 60
+          example: Treino de membros superiores.
+        tipo:
+          type: string
+          enum: [musculacao, cardio, funcional, mobilidade, casa]
         nivel:
           type: string
           enum: [iniciante, intermediario, avancado]
-          description: Nível de dificuldade atribuído.
-          example: 'intermediario'
-        dataTreino:
-          type: string
-          format: date
-          description: Data do treino (YYYY-MM-DD). Não pode ser no passado.
-          example: '2026-05-15'
-        caloriasEstimadas:
-          type: integer
-          minimum: 1
-          description: Estimativa de queima calórica.
-          example: 400
-
-    TreinoOutput:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Identificador único gerado pelo sistema.
-          example: 'eb4a40ed-c47d-45db-b9d9-bb5eb4ab8521'
-        nomeTreino:
-          type: string
-          example: 'Maratona de Cardio'
-        tipoTreino:
-          type: string
-          example: 'cardio'
-        duracaoMinutos:
+        duracaoEstimada:
           type: integer
           example: 60
-        nivel:
-          type: string
-          example: 'intermediario'
-        dataTreino:
-          type: string
-          format: date
-          example: '2026-05-15'
         caloriasEstimadas:
           type: integer
           example: 400
-          
-    ErrorResponse:
-      type: object
-      properties:
-        error:
+        exercicios:
+          type: array
+          items:
+            type: string
+        instrutor:
           type: string
-          description: Mensagem detalhada sobre a violação da regra de negócio.
-          example: 'A "dataTreino" não pode ser no passado.'
+
+    ExercicioInput:
+      type: object
+      required:
+        [
+          nome,
+          descricao,
+          grupoMuscular,
+          nivel,
+          equipamento,
+          videoUrl,
+          imagemUrl,
+          instrucoesExecucao,
+          errosComuns,
+        ]
+      properties:
+        nome:
+          type: string
+          example: Supino reto
+        descricao:
+          type: string
+          example: Exercicio para desenvolvimento de peitoral.
+        grupoMuscular:
+          type: string
+          example: peitoral
+        nivel:
+          type: string
+          enum: [iniciante, intermediario, avancado]
+        equipamento:
+          type: string
+          example: barra e banco
+        videoUrl:
+          type: string
+          example: https://example.com/supino.mp4
+        imagemUrl:
+          type: string
+          example: https://example.com/supino.jpg
+        instrucoesExecucao:
+          type: array
+          items:
+            type: string
+        errosComuns:
+          type: array
+          items:
+            type: string
+
+    InstrutorInput:
+      type: object
+      required: [nome, especialidade, biografia, foto]
+      properties:
+        nome:
+          type: string
+        especialidade:
+          type: string
+        biografia:
+          type: string
+        foto:
+          type: string
+        instagram:
+          type: string
+        youtube:
+          type: string
+
+    HistoricoInput:
+      type: object
+      required: [treinoId, dataExecucao, duracaoReal, caloriasQueimadas]
+      properties:
+        treinoId:
+          type: string
+        dataExecucao:
+          type: string
+          format: date-time
+        duracaoReal:
+          type: integer
+        caloriasQueimadas:
+          type: integer
+        observacoes:
+          type: string

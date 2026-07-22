@@ -4,6 +4,7 @@ node_modules/
 # Relatórios de Testes (QA)
 mochawesome-report/
 coverage/
+.nyc_output/
 
 # Variáveis de ambiente secretas (se vier a ter)
 .env
@@ -16,3 +17,5 @@ yarn-error.log*
 # Sistema Operacional
 .DS_Store
 Thumbs.db
+
+.agents
