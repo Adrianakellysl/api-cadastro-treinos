@@ -1,195 +1,213 @@
 # Gym Workouts API
 
-API REST em Node.js e Express para uma plataforma de treinos de academia e treinos em casa.
+API REST desenvolvida em **Node.js** e **Express** para gerenciamento de treinos, exercícios e fichas de academia.
 
-## Funcionalidades
+O projeto foi desenvolvido com foco em **boas práticas de Quality Assurance**, aplicando autenticação JWT, documentação Swagger, testes automatizados e integração contínua.
 
-- Cadastro e login de usuarios com JWT.
-- CRUD de exercicios com video, imagem, instrucoes e erros comuns.
-- CRUD de instrutores.
-- CRUD de treinos associados ao usuario autenticado.
-- Cadastro de exercicios vinculados diretamente a um treino.
-- Filtros por nome, tipo, nivel e intervalo de duracao.
-- Paginacao na listagem de treinos.
-- CRUD de fichas de treino, como Ficha ABC.
-- Registro de historico de treinos realizados.
-- Dashboard com total de treinos realizados, dias consecutivos, calorias, horas treinadas e evolucao mensal.
-- Estatisticas de treinos com quantidade, tempo total e calorias estimadas.
-- Swagger em `/api-docs`.
-- MongoDB com Mongoose.
-- Testes automatizados com Mocha, Chai, Supertest e MongoDB em memoria.
-- Cobertura minima de 80% com nyc.
-- Pipeline GitHub Actions.
+---
 
-## Arquitetura
+# Principais funcionalidades
 
-```txt
+- Autenticação e autorização com JWT
+- CRUD completo de treinos, exercícios, fichas e instrutores
+- Dashboard com estatísticas dos treinos
+- Paginação e filtros de pesquisa
+- Isolamento de dados por usuário
+- Documentação interativa com Swagger/OpenAPI
+- Tratamento centralizado de erros
+- Validação de dados utilizando Joi
+
+---
+
+# Qualidade do projeto
+
+- Testes automatizados com **Mocha**, **Chai** e **Supertest**
+- Cobertura mínima de **80%**
+- Pipeline de CI utilizando **GitHub Actions**
+- Arquitetura em camadas
+- Repository Pattern
+- Factory Pattern
+- Services Pattern
+
+---
+
+# Tecnologias
+
+## Backend
+
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+
+## Segurança
+
+- JWT
+- bcryptjs
+- Helmet
+- Joi
+- CORS
+
+## Testes
+
+- Mocha
+- Chai
+- Supertest
+- NYC
+- Mochawesome
+
+## Ferramentas
+
+- Swagger / OpenAPI
+- GitHub Actions
+
+---
+
+# Arquitetura
+
+O projeto segue uma arquitetura em camadas para facilitar manutenção, escalabilidade e testes.
+
+```
 src/
-  config/
-  controllers/
-  middlewares/
-  models/
-  repositories/
-  routes/
-  services/
-  utils/
-  validators/
+├── controllers/
+├── services/
+├── repositories/
+├── models/
+├── routes/
+├── validators/
+├── middlewares/
+└── config/
 ```
 
-Fluxo principal:
+Fluxo da aplicação:
 
-```txt
-routes -> validators -> controllers -> services -> repositories -> models
+```
+Request
+    ↓
+Routes
+    ↓
+Validators
+    ↓
+Authentication
+    ↓
+Controllers
+    ↓
+Services
+    ↓
+Repositories
+    ↓
+MongoDB
 ```
 
-## Variaveis de ambiente
+---
 
-Crie um arquivo `.env` baseado em `.env.example`:
+# Documentação
 
-```env
-NODE_ENV=development
-PORT=3000
-MONGODB_URI=mongodb://127.0.0.1:27017/gym-workouts-api
-JWT_SECRET=change-this-secret-in-production
-JWT_EXPIRES_IN=1d
+Após iniciar a aplicação, a documentação pode ser acessada em:
+
 ```
-
-Para deploy, use uma URI do MongoDB Atlas em `MONGODB_URI` e um valor forte em `JWT_SECRET`.
-
-## Instalar dependencias
-
-```bash
-npm install
-```
-
-## Rodar localmente
-
-```bash
-npm run dev
-```
-
-API:
-
-```txt
-http://localhost:3000
-```
-
-Swagger:
-
-```txt
 http://localhost:3000/api-docs
 ```
 
-Health check:
+---
 
-```txt
-GET /health
+# Como executar
+
+```bash
+git clone https://github.com/adrianakely/desafio04-APIdeCadastro.git
+
+cd desafio04-APIdeCadastro
+
+npm install
+
+cp .env.example .env
+
+npm run dev
 ```
 
-## Testes
+A API ficará disponível em:
+
+```
+http://localhost:3000
+```
+
+---
+
+# Executando os testes
 
 ```bash
 npm test
 ```
 
-Com cobertura minima:
+Cobertura de testes:
 
 ```bash
 npm run coverage
 ```
 
-## Autenticacao
+---
 
-Rotas protegidas exigem:
+# Integração Contínua
 
-```txt
-Authorization: Bearer <token>
+O projeto possui pipeline configurada no **GitHub Actions**, responsável por:
+
+- Instalar dependências
+- Executar todos os testes
+- Validar cobertura mínima
+- Validar o build da aplicação
+
+---
+
+# Estrutura da API
+
+## Autenticação
+
 ```
-
-Endpoints publicos:
-
-```txt
 POST /auth/register
 POST /auth/login
-GET  /health
 ```
 
-## Endpoints principais
+## Exercícios
 
-```txt
-POST   /auth/register
-POST   /auth/login
-
+```
 POST   /exercicios
 GET    /exercicios
-GET    /exercicios/:id
 PUT    /exercicios/:id
 DELETE /exercicios/:id
+```
 
+## Treinos
+
+```
 POST   /treinos
 GET    /treinos
-GET    /treinos/:id
 PUT    /treinos/:id
 DELETE /treinos/:id
-POST   /treinos/:id/exercicios
-GET    /treinos/estatisticas
+```
 
-POST   /instrutores
-GET    /instrutores
-GET    /instrutores/:id
-PUT    /instrutores/:id
-DELETE /instrutores/:id
+## Fichas
 
+```
 POST   /fichas
 GET    /fichas
-GET    /fichas/:id
 PUT    /fichas/:id
 DELETE /fichas/:id
-
-POST   /historico
-GET    /historico
-GET    /historico/:id
-
-GET    /dashboard/resumo
-GET    /dashboard/evolucao-mensal
 ```
 
-Exemplo de filtros e paginacao:
+## Dashboard
 
-```txt
-GET /treinos?nome=cardio&tipo=cardio&nivel=iniciante&duracaoMin=20&duracaoMax=60&page=1&limit=10
+```
+GET /dashboard/resumo
+GET /dashboard/evolucao-mensal
 ```
 
-## Regras de negocio
+---
 
-- Todo treino pertence ao usuario autenticado.
-- Usuarios nao podem acessar treinos, exercicios ou historicos de outros usuarios.
-- Treinos nao podem ter exercicios duplicados.
-- Todo exercicio associado a um treino deve existir e pertencer ao usuario autenticado.
-- Todo treino deve ter um instrutor existente.
-- Toda ficha so pode associar treinos existentes.
-- Historico so pode ser registrado para treino existente do usuario autenticado.
+# Segurança
 
-## Deploy
-
-O projeto esta preparado para hospedagem em Render, Railway, Fly.io ou outro provedor Node.js.
-
-Configuracoes esperadas:
-
-```txt
-Build command: npm install
-Start command: npm start
-Environment:
-  NODE_ENV=production
-  PORT=<definido pelo provedor>
-  MONGODB_URI=<URI do MongoDB Atlas>
-  JWT_SECRET=<segredo forte>
-  JWT_EXPIRES_IN=1d
-```
-
-Antes do deploy, o CI executa:
-
-```bash
-npm ci
-npm run coverage
-```
+- JWT
+- Senhas criptografadas com bcrypt
+- Helmet
+- CORS
+- Validação com Joi
+- Isolamento de dados por usuário
